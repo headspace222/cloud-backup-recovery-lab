@@ -49,6 +49,13 @@ recovers from each separately.
 
 ## Retention Window: A Real Trade-off, Not a Default
 
+This lab uses a 7-day retention window for soft delete and versioning. A real
+constraint surfaced during setup: point-in-time restore's retention window
+must be strictly less than the delete retention policy's window - setting
+both to the same value (7 days) is rejected by Azure with a BadRequest error.
+enable-protection-features.ps1 handles this automatically by using one day
+less than the delete retention value for the restore policy.
+
 This lab uses a 7-day retention window. Longer retention means more time to
 notice and recover from an incident, at the cost of more storage consumed by
 retained deleted items and old versions.
