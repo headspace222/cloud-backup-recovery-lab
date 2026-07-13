@@ -59,6 +59,39 @@ service in its own right:
   enabled first (both free to enable); the restore operation itself has no
   separate charge
 
+## Screenshots
+
+Evidence of both recovery scenarios, captured against a live Azure
+subscription during this build. Files live in docs/screenshots/.
+
+**1. Protection Features Enabled**
+![Protection features enabled](docs/screenshots/01-protection-features-enabled.png)
+Soft delete, versioning, change feed, and point-in-time restore all
+confirmed active via PowerShell verification output.
+
+**2. Data Protection Portal View**
+![Data protection portal view](docs/screenshots/02-data-protection-portal-view.png)
+The same configuration confirmed directly in the Azure Portal.
+
+**3. Incident Simulation**
+![Incident simulation output](docs/screenshots/03-incident-simulation-output.png)
+Test data uploaded, then deliberately deleted and overwritten - creating
+real incidents to recover from.
+
+**4. Deleted Blob Recovered**
+![Deleted blob recovered](docs/screenshots/04-deleted-blob-recovered.png)
+The accidentally deleted file restored to "Current version" status.
+
+**5. Previous Version Restored**
+![Version restored](docs/screenshots/05-version-restored.png)
+A clean two-version recovery cycle: exactly one original and one corrupted
+version identified, with the original correctly restored.
+
+**6. Content Verification**
+![Content verification](docs/screenshots/06-content-verification.png)
+The recovered file's actual content confirmed as the original, not the
+corrupted overwrite - proof the recovery worked, not just that the script
+exited without error.
 ## Setup Guide
 
 Full steps: [`docs/setup-guide.md`](docs/setup-guide.md).
