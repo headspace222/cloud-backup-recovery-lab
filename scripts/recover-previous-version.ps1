@@ -14,6 +14,12 @@
 
 .PARAMETER BlobName
     Name of the blob to restore to its previous version.
+
+.NOTES
+    Lists all blobs with -IncludeVersion and filters client-side by name,
+    rather than combining -Blob with -IncludeVersion directly - the latter
+    hit a "parameter set cannot be resolved" error on some blobs during this
+    lab's build, apparently depending on how many versions existed.
 #>
 
 param(
@@ -33,7 +39,7 @@ $ctx = (Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $Storag
 
 Write-Host "Listing all versions of '$BlobName' ..." -ForegroundColor Cyan
 
-$allVersions = Get-AzStorageBlob -Container $ContainerName -Blob $BlobName -Context $ctx -IncludeVersion | Sort-Object -Property LastModified -Descending
+$allVersions = Get-AzStorageBlob -Container $ContainerName -Context $ctx -IncludeVersion -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $BlobName } | Sort-Object -Property LastModified -Descending
 
 if ($allVersions.Count -lt 2) {
     Write-Host "Fewer than 2 versions found - nothing to roll back to. Confirm versioning was enabled before the overwrite occurred." -ForegroundColor Yellow
