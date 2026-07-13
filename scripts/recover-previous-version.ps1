@@ -14,12 +14,6 @@
 
 .PARAMETER BlobName
     Name of the blob to restore to its previous version.
-
-.NOTES
-    Lists all blobs with -IncludeVersion and filters client-side by name,
-    rather than combining -Blob with -IncludeVersion directly - the latter
-    hit a "parameter set cannot be resolved" error on some blobs during this
-    lab's build, apparently depending on how many versions existed.
 #>
 
 param(
@@ -42,7 +36,7 @@ Write-Host "Listing all versions of '$BlobName' ..." -ForegroundColor Cyan
 $allVersions = Get-AzStorageBlob -Container $ContainerName -Context $ctx -IncludeVersion -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $BlobName } | Sort-Object -Property LastModified -Descending
 
 if ($allVersions.Count -lt 2) {
-    Write-Host "Fewer than 2 versions found - nothing to roll back to. Confirm versioning was enabled before the overwrite occurred." -ForegroundColor Yellow
+    Write-Host "Fewer than 2 versions found - nothing to roll back to." -ForegroundColor Yellow
     exit 0
 }
 
@@ -56,11 +50,10 @@ Write-Host "`nCurrent version (the accidental overwrite): $($currentVersion.Last
 Write-Host "Restoring previous version: $($previousVersion.LastModified) ..." -ForegroundColor Cyan
 
 $tempPath = Join-Path $env:TEMP "restore-$BlobName-$(Get-Random)"
-$previousVersion.BlobClient.DownloadTo($tempPath)
+$previousVersion.BlobClient.DownloadTo($tempPath) | Out-Null
 
 Set-AzStorageBlobContent -File $tempPath -Container $ContainerName -Blob $BlobName -Context $ctx -Force | Out-Null
 
 Remove-Item $tempPath -ErrorAction SilentlyContinue
 
-Write-Host "`nRecovery complete. The blob's current content is now restored to the pre-overwrite version." -ForegroundColor Green
-Write-Host "Verify by downloading and checking the content matches the original, not the corrupted overwrite." -ForegroundColor Cyan
+Write-Host "`nRecovery complete." -ForegroundColor Green
