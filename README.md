@@ -68,30 +68,47 @@ subscription during this build. Files live in docs/screenshots/.
 ![Protection features enabled](docs/screenshots/01-protection-features-enabled.png)
 Soft delete, versioning, change feed, and point-in-time restore all
 confirmed active via PowerShell verification output.
+This is the baseline configuration every recovery scenario in this project
+depends on - without it, neither incident below would be recoverable at all.
 
 **2. Data Protection Portal View**
 ![Data protection portal view](docs/screenshots/02-data-protection-portal-view.png)
 The same configuration confirmed directly in the Azure Portal.
+Checking both the CLI output and the portal view matters in practice - it's
+the difference between trusting a script's exit code and actually verifying
+the setting took effect where it's meant to.
 
 **3. Incident Simulation**
 ![Incident simulation output](docs/screenshots/03-incident-simulation-output.png)
 Test data uploaded, then deliberately deleted and overwritten - creating
 real incidents to recover from.
+Both failure modes were triggered in the same run deliberately, so the
+recovery steps that follow are proven against genuine incidents rather than
+a hypothetical description of what soft delete or versioning "should" do.
 
 **4. Deleted Blob Recovered**
 ![Deleted blob recovered](docs/screenshots/04-deleted-blob-recovered.png)
 The accidentally deleted file restored to "Current version" status.
+Getting this working required discovering that versioning intercepts
+deletion before soft delete's own recovery path does - documented in full
+in docs/architecture.md.
 
 **5. Previous Version Restored**
 ![Version restored](docs/screenshots/05-version-restored.png)
 A clean two-version recovery cycle: exactly one original and one corrupted
 version identified, with the original correctly restored.
+Run on a fresh blob name specifically to keep the evidence unambiguous,
+after repeated test runs on the original file accumulated enough version
+history to make "the previous version" genuinely ambiguous.
 
 **6. Content Verification**
 ![Content verification](docs/screenshots/06-content-verification.png)
 The recovered file's actual content confirmed as the original, not the
 corrupted overwrite - proof the recovery worked, not just that the script
 exited without error.
+This step is the one most tutorials skip - a script reporting success and a
+recovery actually being correct are two different claims, and only one of
+them is proven by output text alone.
 ## Setup Guide
 
 Full steps: [`docs/setup-guide.md`](docs/setup-guide.md).
