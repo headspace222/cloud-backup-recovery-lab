@@ -36,6 +36,7 @@ earns its complexity at larger scale.
 | [`scripts/recover-deleted-blob.ps1`](scripts/recover-deleted-blob.ps1) | Recovers the accidentally deleted blob via soft delete |
 | [`scripts/recover-previous-version.ps1`](scripts/recover-previous-version.ps1) | Recovers the pre-overwrite version of a blob via versioning |
 | [`docs/architecture.md`](docs/architecture.md) | RPO/RTO concepts, design rationale, and where Azure Backup's vault-based model earns its cost |
+| [`docs/architecture-diagram.md`](docs/architecture-diagram.md) | Visual diagram of the protection features, incidents, and unified recovery mechanism |
 | [`docs/setup-guide.md`](docs/setup-guide.md) | Full reproduction steps with screenshot evidence points |
 | [`docs/screenshots/`](docs/screenshots/) | Evidence of both recovery scenarios actually working |
 
