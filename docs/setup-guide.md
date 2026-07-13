@@ -23,6 +23,12 @@ Also confirm in the portal: Storage account, Data protection (left nav).
 
 ## Step 2 - Simulate the Incidents
 
+Wait 5-10 minutes after Step 1 before proceeding. Soft delete and the other
+protection features report as enabled immediately via the API, but
+enforcement takes a short time to fully propagate across the storage
+account. Deleting a blob before propagation completes results in a genuine
+hard delete rather than a soft delete, which will not be recoverable.
+
 ```powershell
 .\scripts\simulate-data-loss.ps1 -ResourceGroupName "rg-data-migration-lab" -StorageAccountName "stmigrationlabjane01" -ContainerName "backup-recovery-test"
 ```
@@ -41,18 +47,34 @@ Also confirm in the portal: Storage account, Data protection (left nav).
 
 ## Step 4 - Recover the Overwritten Blob's Previous Version
 
+Note on repeated testing: if customer-list.csv has been through the
+simulation multiple times, it will have accumulated many versions, and "the
+version immediately before the current one" may not be the clean original.
+For unambiguous evidence, create one clean two-version cycle on a fresh
+blob name:
+
 ```powershell
-.\scripts\recover-previous-version.ps1 -ResourceGroupName "rg-data-migration-lab" -StorageAccountName "stmigrationlabjane01" -ContainerName "backup-recovery-test" -BlobName "customer-list.csv"
+$ctx = (Get-AzStorageAccount -ResourceGroupName "rg-data-migration-lab" -Name "stmigrationlabjane01").Context
+
+"ORIGINAL clean content - this is the version we want to recover" | Out-File "$env:TEMP\clean-test.txt" -Encoding utf8
+Set-AzStorageBlobContent -File "$env:TEMP\clean-test.txt" -Container "backup-recovery-test" -Blob "clean-recovery-test.txt" -Context $ctx -Force
+
+Start-Sleep -Seconds 2
+
+"CORRUPTED overwrite content - this should NOT be what we see after recovery" | Out-File "$env:TEMP\clean-test-bad.txt" -Encoding utf8
+Set-AzStorageBlobContent -File "$env:TEMP\clean-test-bad.txt" -Container "backup-recovery-test" -Blob "clean-recovery-test.txt" -Context $ctx -Force
+
+.\scripts\recover-previous-version.ps1 -ResourceGroupName "rg-data-migration-lab" -StorageAccountName "stmigrationlabjane01" -ContainerName "backup-recovery-test" -BlobName "clean-recovery-test.txt"
 ```
 
 **Evidence to capture:**
 - 05-version-restored.png
 
-Verify actual content:
+Verify the actual content:
 
 ```powershell
-Get-AzStorageBlobContent -Container "backup-recovery-test" -Blob "customer-list.csv" -Destination "$env:TEMP\verify.csv" -Context (Get-AzStorageAccount -ResourceGroupName "rg-data-migration-lab" -Name "stmigrationlabjane01").Context -Force
-Get-Content "$env:TEMP\verify.csv"
+Get-AzStorageBlobContent -Container "backup-recovery-test" -Blob "clean-recovery-test.txt" -Destination "$env:TEMP\verify-clean.txt" -Context $ctx -Force
+Get-Content "$env:TEMP\verify-clean.txt"
 ```
 
 **Evidence to capture:**
@@ -62,10 +84,7 @@ Get-Content "$env:TEMP\verify.csv"
 
 ```powershell
 cd C:\cloud-backup-recovery-lab
-git init
 git add -A
-git commit -m "Initial build: backup and recovery via native storage protection features"
-git branch -M main
-git remote add origin https://github.com/headspace222/cloud-backup-recovery-lab.git
-git push -u origin main
+git commit -m "Complete build with all evidence"
+git push
 ```
